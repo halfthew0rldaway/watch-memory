@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.watchmemory.data.ShowEntity
 import com.example.watchmemory.ui.theme.BrutalPalette
 import com.example.watchmemory.ui.theme.LocalBrutalColors
@@ -117,21 +119,33 @@ fun WatchCard(
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Icon in a Circle
                 val categoryIcon = when(show.category) {
                     "Movie" -> Icons.Outlined.LocalMovies
                     "Anime" -> Icons.Outlined.AutoAwesome
                     else -> Icons.Outlined.Tv
                 }
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .border(2.dp, brutal.border, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(categoryIcon, contentDescription = null, tint = brutal.border, modifier = Modifier.size(24.dp))
+                if (show.posterUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = show.posterUrl,
+                        contentDescription = "Poster",
+                        modifier = Modifier
+                            .size(54.dp, 72.dp) // Movie poster aspect ratio
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                            .border(2.dp, brutal.border, RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .border(2.dp, brutal.border, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(categoryIcon, contentDescription = null, tint = brutal.border, modifier = Modifier.size(24.dp))
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))

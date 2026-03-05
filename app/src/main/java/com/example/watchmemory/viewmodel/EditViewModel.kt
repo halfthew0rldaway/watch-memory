@@ -6,8 +6,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.watchmemory.data.ImdbApiClient
+import com.example.watchmemory.data.ImdbSearchResult
 import com.example.watchmemory.data.ShowEntity
 import com.example.watchmemory.data.ShowRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +29,13 @@ data class EditUiState(
     val isSaving: Boolean = false,
     val isLoading: Boolean = true,
     val isNew: Boolean = true,
-    val saveComplete: Boolean = false
+    val saveComplete: Boolean = false,
+    // IMDB
+    val imdbId: String = "",
+    val posterUrl: String = "",
+    val searchResults: List<ImdbSearchResult> = emptyList(),
+    val isSearching: Boolean = false,
+    val searchExpanded: Boolean = false
 )
 
 class EditViewModel(
@@ -53,7 +63,9 @@ class EditViewModel(
                             note = show.note,
                             isWatched = show.episode >= (show.totalEpisodes ?: 1),
                             isLoading = false,
-                            isNew = false
+                            isNew = false,
+                            imdbId = show.imdbId,
+                            posterUrl = show.posterUrl
                         )
                     }
                 } else {
@@ -67,6 +79,50 @@ class EditViewModel(
 
     fun updateTitle(title: String) {
         _uiState.update { it.copy(title = title) }
+        debounceSearchJob?.cancel()
+        if (title.length >= 2) {
+            debounceSearchJob = viewModelScope.launch {
+                delay(500)
+                searchImdb(title)
+            }
+        } else {
+            _uiState.update { it.copy(searchResults = emptyList(), searchExpanded = false) }
+        }
+    }
+
+    private var debounceSearchJob: Job? = null
+
+    private fun searchImdb(query: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSearching = true, searchExpanded = true) }
+            try {
+                val response = ImdbApiClient.service.search(query)
+                _uiState.update {
+                    it.copy(
+                        searchResults = response.results?.take(6) ?: emptyList(),
+                        isSearching = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSearching = false, searchResults = emptyList()) }
+            }
+        }
+    }
+
+    fun selectSearchResult(result: ImdbSearchResult) {
+        _uiState.update {
+            it.copy(
+                title = result.title,
+                imdbId = result.imdbId,
+                posterUrl = result.posterUrl,
+                searchResults = emptyList(),
+                searchExpanded = false
+            )
+        }
+    }
+
+    fun dismissSearch() {
+        _uiState.update { it.copy(searchExpanded = false, searchResults = emptyList()) }
     }
 
     fun updateEpisode(episode: String) {
@@ -137,7 +193,9 @@ class EditViewModel(
                 category = currentState.category,
                 status = currentState.status,
                 note = note,
-                lastUpdated = System.currentTimeMillis()
+                lastUpdated = System.currentTimeMillis(),
+                imdbId = currentState.imdbId,
+                posterUrl = currentState.posterUrl
             )
             
             if (showId > 0) {

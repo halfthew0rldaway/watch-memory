@@ -10,8 +10,10 @@ data class ShowEntity(
     val title: String,
     val episode: Int = 1,
     val totalEpisodes: Int? = null,
-    val category: String = "Series", // Anime, Series, Movie, etc.
-    val status: String = "Watching", // Watching, Finished, Dropped
+    val category: String = "Series",
+    val status: String = "Watching",
     val note: String = "",
-    val lastUpdated: Long = System.currentTimeMillis()
+    val lastUpdated: Long = System.currentTimeMillis(),
+    val imdbId: String = "",
+    val posterUrl: String = ""
 )

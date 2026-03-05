@@ -1,6 +1,8 @@
 package com.example.watchmemory.widget
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -20,16 +22,22 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import coil.imageLoader
+import coil.request.ErrorResult
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.watchmemory.MainActivity
 import com.example.watchmemory.R
 import com.example.watchmemory.data.ShowEntity
 import com.example.watchmemory.data.WatchMemoryDatabase
 import com.example.watchmemory.data.UserPreferences
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
+
+/** Pairs a ShowEntity with its downloaded poster bitmap (null if unavailable). */
+data class ShowWithPoster(val show: ShowEntity, val poster: Bitmap? = null)
 
 private val ShowIdKey = ActionParameters.Key<Long>("show_id")
 
@@ -49,23 +57,44 @@ class WatchMemoryWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val db = WatchMemoryDatabase.getInstance(context)
         val userPrefs = UserPreferences(context)
-        
+
         combine(
             db.showDao().getAllShows(),
             userPrefs.userName
         ) { shows, userName ->
             Pair(shows, userName)
         }.collectLatest { (shows, userName) ->
+            // Download posters concurrently in IO thread
+            val showsWithPosters = withContext(Dispatchers.IO) {
+                shows.map { show ->
+                    val bitmap: Bitmap? = if (show.posterUrl.isNotBlank()) {
+                        try {
+                            val request = ImageRequest.Builder(context)
+                                .data(show.posterUrl)
+                                .allowHardware(false) // software bitmap required for ImageProvider
+                                .size(72, 100)        // scale down — widget IPC has ~1MB limit
+                                .build()
+                            val result = context.imageLoader.execute(request)
+                            if (result is SuccessResult) {
+                                (result.drawable as? BitmapDrawable)?.bitmap
+                            } else null
+                        } catch (e: Exception) {
+                            null
+                        }
+                    } else null
+                    ShowWithPoster(show, bitmap)
+                }
+            }
             provideContent {
                 GlanceTheme {
-                    WidgetContent(shows, userName)
+                    WidgetContent(showsWithPosters, userName)
                 }
             }
         }
     }
 
     @Composable
-    private fun WidgetContent(shows: List<ShowEntity>, userName: String) {
+    private fun WidgetContent(shows: List<ShowWithPoster>, userName: String) {
         val size = LocalSize.current
         val isVerySmall = size.width < 120.dp
         val isShort = size.height < 120.dp
@@ -102,7 +131,7 @@ class WatchMemoryWidget : GlanceAppWidget() {
                             )
                         }
                     }
-                    
+
                     if (size.width > 150.dp) {
                         Box(
                             modifier = GlanceModifier
@@ -128,8 +157,8 @@ class WatchMemoryWidget : GlanceAppWidget() {
                 EmptyWidgetState()
             } else {
                 LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-                    items(shows) { show ->
-                        WidgetShowItem(show, size)
+                    items(shows) { swp ->
+                        WidgetShowItem(swp, size)
                     }
                     item {
                         AddShowButton()
@@ -182,31 +211,34 @@ class WatchMemoryWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun WidgetShowItem(show: ShowEntity, widgetSize: DpSize) {
+    private fun WidgetShowItem(swp: ShowWithPoster, widgetSize: DpSize) {
+        val show = swp.show
         val itemColorRes = when (kotlin.math.abs(show.id.toInt()) % 4) {
             0 -> R.color.widget_item_1
             1 -> R.color.widget_item_2
             2 -> R.color.widget_item_3
             else -> R.color.widget_item_4
         }
-        
+
         val isNarrow = widgetSize.width < 180.dp
         val isCinema = show.category == "Cinema"
         val progressText = if (isCinema) "MIN ${show.episode}" else "EP ${show.episode}"
         val incrementText = if (isCinema) "+10" else "+1"
-        
-        // Pure Neobrutal Item Style (Black Border container, offset shadow)
+
         Column(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp, end = 4.dp) // Space for fake shadow
+                .padding(bottom = 8.dp, end = 4.dp)
         ) {
             Box(
                 modifier = GlanceModifier
                     .fillMaxWidth()
                     .background(ColorProvider(R.color.widget_border))
-                    .padding(2.dp) // Acts as a thick border
+                    .padding(2.dp)
             ) {
+                // Row background: poster image if available, otherwise flat color
+                val posterBitmap = swp.poster
+
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
@@ -214,6 +246,25 @@ class WatchMemoryWidget : GlanceAppWidget() {
                         .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Poster thumbnail on the left if available
+                    if (posterBitmap != null && !isNarrow) {
+                        // Wrap in a Box to simulate border (cornerRadius isn't reliable in Glance 1.0)
+                        Box(
+                            modifier = GlanceModifier
+                                .background(ColorProvider(R.color.widget_border))
+                                .padding(2.dp)
+                        ) {
+                            Image(
+                                provider = ImageProvider(posterBitmap),
+                                contentDescription = "Poster",
+                                modifier = GlanceModifier
+                                    .width(36.dp)
+                                    .height(52.dp)
+                            )
+                        }
+                        Spacer(modifier = GlanceModifier.width(8.dp))
+                    }
+
                     Column(
                         modifier = GlanceModifier
                             .defaultWeight()
@@ -237,19 +288,19 @@ class WatchMemoryWidget : GlanceAppWidget() {
                             )
                         )
                     }
-                    
+
                     Spacer(modifier = GlanceModifier.width(8.dp))
-                    
-                    // Increment Button Boxed
+
+                    // Increment Button
                     Box(
                         modifier = GlanceModifier
-                            .background(ColorProvider(R.color.widget_border)) // Outline
+                            .background(ColorProvider(R.color.widget_border))
                             .padding(2.dp)
                     ) {
                         Box(
                             modifier = GlanceModifier
                                 .size(width = 44.dp, height = 32.dp)
-                                .background(ColorProvider(R.color.widget_surface)) // Filled with contrast color
+                                .background(ColorProvider(R.color.widget_surface))
                                 .clickable(
                                     actionRunCallback<IncrementActionCallback>(
                                         actionParametersOf(ShowIdKey to show.id)
