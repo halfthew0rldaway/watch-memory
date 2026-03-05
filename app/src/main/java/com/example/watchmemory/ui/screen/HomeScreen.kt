@@ -1,5 +1,6 @@
 package com.example.watchmemory.ui.screen
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -201,20 +202,50 @@ fun EmptyStateSection(onAddShow: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 48.dp),
+            .padding(top = 64.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .background(Color.White, RoundedCornerShape(24.dp))
+                .border(4.dp, LocalBrutalColors.current.border, RoundedCornerShape(24.dp))
+                .brutalFloat(2000),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "?",
+                style = MaterialTheme.typography.displayLarge,
+                fontWeight = FontWeight.Black,
+                color = LocalBrutalColors.current.border
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
         Text(
-            text = "NO SHOWS YET",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "ARCHIVE IS EMPTY",
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Black,
-            color = LocalBrutalColors.current.border.copy(alpha = 0.3f)
+            color = LocalBrutalColors.current.border
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Text(
+            text = "START YOUR COLLECTION NOW",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = LocalBrutalColors.current.border.copy(alpha = 0.4f)
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
         BrutalButton(
-            text = "START TRACKING",
+            text = "INITIALIZE TRACKING",
             onClick = onAddShow,
-            backgroundColor = BrutalYellow
+            backgroundColor = BrutalYellow,
+            modifier = Modifier.fillMaxWidth(0.8f)
         )
     }
 }
@@ -229,51 +260,41 @@ fun FilterSortBar(
 ) {
     val brutal = LocalBrutalColors.current
     
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        // Filter Row
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            BrutalPillButton(
-                text = "ALL",
-                selected = currentFilter == HomeFilter.ALL,
-                onClick = { onFilterChange(HomeFilter.ALL) }
-            )
-            BrutalPillButton(
-                text = "WATCHING",
-                selected = currentFilter == HomeFilter.WATCHING,
-                onClick = { onFilterChange(HomeFilter.WATCHING) }
-            )
-            BrutalPillButton(
-                text = "DONE",
-                selected = currentFilter == HomeFilter.COMPLETED,
-                onClick = { onFilterChange(HomeFilter.COMPLETED) }
-            )
-        }
-
-        // Sort Row
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Combined Row for better balance if possible, or refined stacks
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
-                text = "SORT:",
+                text = "FILTER STATUS",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 color = brutal.border.copy(alpha = 0.5f),
-                modifier = Modifier.align(Alignment.CenterVertically).padding(end = 4.dp)
+                letterSpacing = 1.sp
             )
-            BrutalPillButton(
-                text = "LATEST",
-                selected = currentSort == HomeSort.LATEST,
-                onClick = { onSortChange(HomeSort.LATEST) }
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                BrutalPillButton(text = "ALL", selected = currentFilter == HomeFilter.ALL, onClick = { onFilterChange(HomeFilter.ALL) })
+                BrutalPillButton(text = "WATCHING", selected = currentFilter == HomeFilter.WATCHING, onClick = { onFilterChange(HomeFilter.WATCHING) })
+                BrutalPillButton(text = "DONE", selected = currentFilter == HomeFilter.COMPLETED, onClick = { onFilterChange(HomeFilter.COMPLETED) })
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "SORT BY",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = brutal.border.copy(alpha = 0.5f),
+                letterSpacing = 1.sp
             )
-            BrutalPillButton(
-                text = "A-Z",
-                selected = currentSort == HomeSort.AZ,
-                onClick = { onSortChange(HomeSort.AZ) }
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                BrutalPillButton(text = "LATEST", selected = currentSort == HomeSort.LATEST, onClick = { onSortChange(HomeSort.LATEST) })
+                BrutalPillButton(text = "A-Z", selected = currentSort == HomeSort.AZ, onClick = { onSortChange(HomeSort.AZ) })
+            }
         }
     }
 }
@@ -289,18 +310,18 @@ fun BrutalPillButton(
     
     Box(
         modifier = Modifier
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(10.dp)) // Squares off for better brutalist feel
             .background(backgroundColor)
-            .border(2.dp, brutal.border, CircleShape)
+            .border(2.dp, brutal.border, RoundedCornerShape(10.dp))
             .clickable { onClick() }
-            .padding(horizontal = 14.dp, vertical = 6.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Black,
             color = brutal.border,
-            fontSize = 11.sp
+            fontSize = 12.sp
         )
     }
 }
