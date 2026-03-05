@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.LocalMovies
 import androidx.compose.material.icons.outlined.Movie
@@ -135,7 +136,7 @@ fun WatchCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = show.title.uppercase(),
                         style = MaterialTheme.typography.titleLarge,
@@ -149,6 +150,24 @@ fun WatchCard(
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                         color = brutal.border
+                    )
+                }
+
+                // Delete Button
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .border(2.dp, brutal.border, CircleShape)
+                        .clickable { onLongPress() }, // Use long press callback for direct delete as well
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                        contentDescription = "Delete",
+                        tint = brutal.border,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }

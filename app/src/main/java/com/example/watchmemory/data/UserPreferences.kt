@@ -14,6 +14,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 class UserPreferences(private val context: Context) {
     companion object {
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
+        private val USER_TITLE_KEY = stringPreferencesKey("user_title")
     }
 
     val userName: Flow<String> = context.dataStore.data
@@ -21,9 +22,20 @@ class UserPreferences(private val context: Context) {
             preferences[USER_NAME_KEY] ?: "ME"
         }
 
+    val userTitle: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[USER_TITLE_KEY] ?: "WATCHER"
+        }
+
     suspend fun saveUserName(name: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_NAME_KEY] = name
+        }
+    }
+
+    suspend fun saveUserTitle(title: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_TITLE_KEY] = title
         }
     }
 }

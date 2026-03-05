@@ -18,8 +18,13 @@ data class HomeUiState(
     val totalEpisodesWatched: Int = 0,
     val seriesCount: Int = 0,
     val animeCount: Int = 0,
-    val userName: String = "ME"
+    val userName: String = "ME",
+    val currentFilter: HomeFilter = HomeFilter.ALL,
+    val currentSort: HomeSort = HomeSort.LATEST
 )
+
+enum class HomeFilter { ALL, WATCHING, COMPLETED }
+enum class HomeSort { AZ, LATEST }
 
 class HomeViewModel(
     private val repository: com.example.watchmemory.data.ShowRepository,
@@ -29,15 +34,44 @@ class HomeViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    private val _filter = MutableStateFlow(HomeFilter.ALL)
+    private val _sort = MutableStateFlow(HomeSort.LATEST)
+
     val uiState: StateFlow<HomeUiState> = combine(
         repository.getAllShows(),
         _searchQuery,
+        _filter,
+        _sort,
         userPreferences.userName
-    ) { shows, query, name ->
-        val filtered = if (query.isBlank()) {
+    ) { shows, query, filter, sort, name ->
+        var filtered = if (query.isBlank()) {
             shows
         } else {
             shows.filter { it.title.contains(query, ignoreCase = true) }
+        }
+
+        // Apply Status Filter
+        filtered = when (filter) {
+            HomeFilter.ALL -> filtered
+            HomeFilter.WATCHING -> filtered.filter { show ->
+                val isMovie = show.category == "Movie"
+                val hasTotal = show.totalEpisodes != null && show.totalEpisodes!! > 0
+                if (isMovie) {
+                    if (hasTotal) show.episode < show.totalEpisodes!! else true // If no total, assume ongoing
+                } else {
+                    if (hasTotal) show.episode < show.totalEpisodes!! else true
+                }
+            }
+            HomeFilter.COMPLETED -> filtered.filter { show ->
+                val hasTotal = show.totalEpisodes != null && show.totalEpisodes!! > 0
+                hasTotal && show.episode >= show.totalEpisodes!!
+            }
+        }
+
+        // Apply Sorting
+        filtered = when (sort) {
+            HomeSort.AZ -> filtered.sortedBy { it.title.lowercase() }
+            HomeSort.LATEST -> filtered.sortedByDescending { it.lastUpdated }
         }
         
         HomeUiState(
@@ -46,13 +80,23 @@ class HomeViewModel(
             totalEpisodesWatched = shows.sumOf { it.episode },
             seriesCount = shows.count { it.category == "Series" },
             animeCount = shows.count { it.category == "Anime" },
-            userName = name
+            userName = name,
+            currentFilter = filter,
+            currentSort = sort
         )
     }
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun updateFilter(filter: HomeFilter) {
+        _filter.value = filter
+    }
+
+    fun updateSort(sort: HomeSort) {
+        _sort.value = sort
     }
 
     fun deleteShow(show: ShowEntity) {

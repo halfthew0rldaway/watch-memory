@@ -1,29 +1,38 @@
+# General Android/IntelliJ
 *.iml
 .gradle
 .idea
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizard.settings.xml
+local.properties
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
-/google-services.json
+google-services.json
 
-# Local Gradle distribution
+# Local Gradle distribution (Critical: Large Files)
 /gradle-8.6/
 /gradle-8.6-bin.zip
+core.*
+*.hprof
 
 # Built and generated files
 /app/build/
 /app/release/
 /app/debug/
+/app/src/main/assets/
+*.apk
+*.aar
+*.dex
 
-# OS-specific
-.DS_Store
+# Gradle generated
+.gradle/
+build/
+
+# Kotlin
+.kotlin/
+
+# System-specific
 Thumbs.db
+Desktop.ini
+.DS_Store

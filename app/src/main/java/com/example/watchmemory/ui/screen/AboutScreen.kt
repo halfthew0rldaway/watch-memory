@@ -2,6 +2,7 @@ package com.example.watchmemory.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -10,6 +11,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +35,7 @@ import com.example.watchmemory.viewmodel.ProfileViewModel
 fun AboutScreen(viewModel: ProfileViewModel) {
     val brutal = LocalBrutalColors.current
     val userName by viewModel.userName.collectAsState()
+    val userTitle by viewModel.userTitle.collectAsState()
     var editingName by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf(userName) }
 
@@ -113,7 +118,7 @@ fun AboutScreen(viewModel: ProfileViewModel) {
                                 color = brutal.border
                             )
                             Text(
-                                text = "MASTER COLLECTOR",
+                                text = userTitle.uppercase(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = brutal.border.copy(alpha = 0.4f)
@@ -123,6 +128,38 @@ fun AboutScreen(viewModel: ProfileViewModel) {
                                 editingName = true 
                                 tempName = userName
                             }, color = BrutalYellow)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Title Selection Section
+            @OptIn(ExperimentalLayoutApi::class)
+            BrutalContainer(title = "CHOOSE YOUR TITLE", backgroundColor = Color.White) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    viewModel.availableTitles.forEach { title ->
+                        val isSelected = userTitle == title
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) brutal.accent else Color.White)
+                                .border(1.5.dp, brutal.border, RoundedCornerShape(8.dp))
+                                .clickable { viewModel.updateTitle(title) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = brutal.border,
+                                fontSize = 10.sp
+                            )
                         }
                     }
                 }

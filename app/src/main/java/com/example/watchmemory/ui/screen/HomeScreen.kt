@@ -4,9 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +25,8 @@ import com.example.watchmemory.ui.theme.BrutalGreen
 import com.example.watchmemory.ui.theme.BrutalPurple
 import com.example.watchmemory.ui.theme.BrutalYellow
 import com.example.watchmemory.ui.theme.LocalBrutalColors
+import com.example.watchmemory.viewmodel.HomeFilter
+import com.example.watchmemory.viewmodel.HomeSort
 import com.example.watchmemory.viewmodel.HomeUiState
 import com.example.watchmemory.viewmodel.HomeViewModel
 
@@ -74,6 +77,16 @@ fun HomeScreen(
             SearchSection(
                 query = uiState.searchQuery,
                 onQueryChange = viewModel::updateSearchQuery
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            FilterSortBar(
+                currentFilter = uiState.currentFilter,
+                currentSort = uiState.currentSort,
+                onFilterChange = viewModel::updateFilter,
+                onSortChange = viewModel::updateSort,
+                modifier = Modifier.brutalPopEntry(2)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -202,6 +215,92 @@ fun EmptyStateSection(onAddShow: () -> Unit) {
             text = "START TRACKING",
             onClick = onAddShow,
             backgroundColor = BrutalYellow
+        )
+    }
+}
+
+@Composable
+fun FilterSortBar(
+    currentFilter: HomeFilter,
+    currentSort: HomeSort,
+    onFilterChange: (HomeFilter) -> Unit,
+    onSortChange: (HomeSort) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val brutal = LocalBrutalColors.current
+    
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // Filter Row
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            BrutalPillButton(
+                text = "ALL",
+                selected = currentFilter == HomeFilter.ALL,
+                onClick = { onFilterChange(HomeFilter.ALL) }
+            )
+            BrutalPillButton(
+                text = "WATCHING",
+                selected = currentFilter == HomeFilter.WATCHING,
+                onClick = { onFilterChange(HomeFilter.WATCHING) }
+            )
+            BrutalPillButton(
+                text = "DONE",
+                selected = currentFilter == HomeFilter.COMPLETED,
+                onClick = { onFilterChange(HomeFilter.COMPLETED) }
+            )
+        }
+
+        // Sort Row
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "SORT:",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = brutal.border.copy(alpha = 0.5f),
+                modifier = Modifier.align(Alignment.CenterVertically).padding(end = 4.dp)
+            )
+            BrutalPillButton(
+                text = "LATEST",
+                selected = currentSort == HomeSort.LATEST,
+                onClick = { onSortChange(HomeSort.LATEST) }
+            )
+            BrutalPillButton(
+                text = "A-Z",
+                selected = currentSort == HomeSort.AZ,
+                onClick = { onSortChange(HomeSort.AZ) }
+            )
+        }
+    }
+}
+
+@Composable
+fun BrutalPillButton(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val brutal = LocalBrutalColors.current
+    val backgroundColor = if (selected) brutal.accent else Color.White
+    
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .border(2.dp, brutal.border, CircleShape)
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Black,
+            color = brutal.border,
+            fontSize = 11.sp
         )
     }
 }

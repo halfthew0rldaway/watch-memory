@@ -13,9 +13,29 @@ class ProfileViewModel(private val userPreferences: UserPreferences) : ViewModel
     val userName: StateFlow<String> = userPreferences.userName
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "ME")
 
+    val userTitle: StateFlow<String> = userPreferences.userTitle
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "WATCHER")
+
+    val availableTitles = listOf(
+        "WATCHER",
+        "MASTER COLLECTER",
+        "ANIME ENTHUSIAST",
+        "SERIES BINGER",
+        "CINEMA LOVER",
+        "BRUTAL TRACKER",
+        "DATA CORE",
+        "VOID OBSERVER"
+    )
+
     fun updateName(newName: String) {
         viewModelScope.launch {
             userPreferences.saveUserName(newName)
+        }
+    }
+
+    fun updateTitle(newTitle: String) {
+        viewModelScope.launch {
+            userPreferences.saveUserTitle(newTitle)
         }
     }
 }
