@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_background">#111111</color> <!-- Deep Black/Grey -->
+    <color name="widget_primary">#F8F8F8</color>    <!-- Crisp Off-white (Borders & Titles) -->
+    <color name="widget_accent">#A1FF00</color>     <!-- Electric Lime (Pop Factor) -->
+    <color name="widget_surface">#1A1A1A</color>
+    <color name="widget_item_1">#1C1C1E</color>     <!-- Subtle Dark tint -->
+    <color name="widget_item_2">#222225</color>     <!-- Subtle Dark tint -->
+    <color name="widget_item_3">#252222</color>     <!-- Subtle Dark tint -->
+    <color name="widget_text_primary">#F8F8F8</color>
+    <color name="widget_text_secondary">#777777</color>
+    <color name="widget_border">#F8F8F8</color>
+    <color name="widget_shadow">#000000</color>
+</resources>

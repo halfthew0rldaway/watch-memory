@@ -1,0 +1,29 @@
+*.iml
+.gradle
+.idea
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizard.settings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+/google-services.json
+
+# Local Gradle distribution
+/gradle-8.6/
+/gradle-8.6-bin.zip
+
+# Built and generated files
+/app/build/
+/app/release/
+/app/debug/
+
+# OS-specific
+.DS_Store
+Thumbs.db

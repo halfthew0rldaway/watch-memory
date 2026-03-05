@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_background">#F0F0F0</color>
+    <color name="widget_primary">#1A1A1A</color>
+    <color name="widget_accent">#FFD93D</color>
+    <color name="widget_surface">#FFFFFF</color>
+    <color name="widget_item_1">#FF9EAA</color> <!-- Pinkpop -->
+    <color name="widget_item_2">#90F1EF</color> <!-- Cyanpop -->
+    <color name="widget_item_3">#E2C6FF</color> <!-- Purplepop -->
+    <color name="widget_text_primary">#1A1A1A</color>
+    <color name="widget_text_secondary">#555555</color>
+    <color name="widget_border">#1A1A1A</color>
+    <color name="widget_shadow">#000000</color>
+</resources>

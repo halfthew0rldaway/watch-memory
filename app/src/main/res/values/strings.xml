@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WatchMemory</string>
+    <string name="title_hint">Show Title</string>
+    <string name="episode_label">Episode</string>
+    <string name="note_hint">Note (optional, max 40 chars)</string>
+    <string name="save_button">Save</string>
+    <string name="update_button">Update</string>
+    <string name="add_show">Add Show</string>
+    <string name="edit_show">Edit Show</string>
+    <string name="history">History</string>
+    <string name="no_shows">No shows tracked yet</string>
+    <string name="empty_hint">Tap + to add your first show</string>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#6200EE</color>
+    <color name="ic_launcher_foreground">#FFFFFF</color>
+    <color name="widget_accent">#FFD93D</color>
+    <color name="widget_background">#F0F0F0</color>
+    <color name="widget_border">#1A1A1A</color>
+    <color name="widget_item_1">#FF9EAA</color>
+    <color name="widget_item_2">#90F1EF</color>
+    <color name="widget_item_3">#E2C6FF</color>
+    <color name="widget_primary">#1A1A1A</color>
+    <color name="widget_shadow">#000000</color>
+    <color name="widget_surface">#FFFFFF</color>
+    <color name="widget_text_primary">#1A1A1A</color>
+    <color name="widget_text_secondary">#555555</color>
+    <string name="add_show">Add Show</string>
+    <string name="app_name">WatchMemory</string>
+    <string name="edit_show">Edit Show</string>
+    <string name="empty_hint">Tap + to add your first show</string>
+    <string name="episode_label">Episode</string>
+    <string name="history">History</string>
+    <string name="no_shows">No shows tracked yet</string>
+    <string name="note_hint">Note (optional, max 40 chars)</string>
+    <string name="save_button">Save</string>
+    <string name="title_hint">Show Title</string>
+    <string name="update_button">Update</string>
+    <style name="Theme.WatchMemory" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
