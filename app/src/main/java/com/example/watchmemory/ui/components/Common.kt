@@ -107,10 +107,11 @@ fun Modifier.brutalPopEntry(
     LaunchedEffect(Unit) {
         delay(index * 60L) // Staggered entry
         launch {
+            // Cartoonish overshoot: scale to 1.1 then settle at 1.0
             animatedScale.animateTo(
                 targetValue = 1f,
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    dampingRatio = 0.5f, // More bouncy/overshoot
                     stiffness = Spring.StiffnessLow
                 )
             )
@@ -119,7 +120,7 @@ fun Modifier.brutalPopEntry(
             animatedSlide.animateTo(
                 targetValue = 0f,
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    dampingRatio = 0.6f,
                     stiffness = Spring.StiffnessLow
                 )
             )

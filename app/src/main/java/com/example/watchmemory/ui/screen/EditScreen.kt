@@ -170,24 +170,14 @@ fun EditScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            BrutalButton(
-                text = if (uiState.isNew) "START TRACKING" else "UPDATE INFO",
-                onClick = viewModel::saveShow,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(72.dp),
+            BrutalSlideButton(
+                text = if (uiState.isNew) "SLIDE TO START" else "SLIDE TO UPDATE",
+                onSlideComplete = viewModel::saveShow,
+                modifier = Modifier.fillMaxWidth().height(72.dp),
                 backgroundColor = brutal.accent,
-                textColor = brutal.border,
-                enabled = uiState.title.isNotBlank() && !uiState.isSaving
-            ) {
-                if (uiState.isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = brutal.border,
-                        strokeWidth = 3.dp
-                    )
-                }
-            }
+                enabled = uiState.title.isNotBlank() && !uiState.isSaving,
+                isLoading = uiState.isSaving
+            )
 
             Spacer(modifier = Modifier.height(40.dp))
         }

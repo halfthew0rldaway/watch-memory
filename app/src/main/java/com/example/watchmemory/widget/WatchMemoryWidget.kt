@@ -28,6 +28,8 @@ import com.example.watchmemory.data.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
 
 private val ShowIdKey = ActionParameters.Key<Long>("show_id")
 
@@ -43,22 +45,21 @@ class WatchMemoryWidget : GlanceAppWidget() {
             DpSize(400.dp, 400.dp)  // Full screen
         )
     )
-
+    
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val db = WatchMemoryDatabase.getInstance(context)
         val userPrefs = UserPreferences(context)
         
-        // Use a broader query or ensure it's not restricted
-        val shows = withContext(Dispatchers.IO) {
-            db.showDao().getAllShowsList()
-        }
-        val userName = withContext(Dispatchers.IO) {
-            userPrefs.userName.first()
-        }
-
-        provideContent {
-            GlanceTheme {
-                WidgetContent(shows, userName)
+        combine(
+            db.showDao().getAllShows(),
+            userPrefs.userName
+        ) { shows, userName ->
+            Pair(shows, userName)
+        }.collectLatest { (shows, userName) ->
+            provideContent {
+                GlanceTheme {
+                    WidgetContent(shows, userName)
+                }
             }
         }
     }
@@ -182,77 +183,97 @@ class WatchMemoryWidget : GlanceAppWidget() {
 
     @Composable
     private fun WidgetShowItem(show: ShowEntity, widgetSize: DpSize) {
-        val itemColorRes = when (kotlin.math.abs(show.id.toInt()) % 3) {
+        val itemColorRes = when (kotlin.math.abs(show.id.toInt()) % 4) {
             0 -> R.color.widget_item_1
             1 -> R.color.widget_item_2
-            else -> R.color.widget_item_3
+            2 -> R.color.widget_item_3
+            else -> R.color.widget_item_4
         }
         
         val isNarrow = widgetSize.width < 180.dp
+        val isCinema = show.category == "Cinema"
+        val progressText = if (isCinema) "MIN ${show.episode}" else "EP ${show.episode}"
+        val incrementText = if (isCinema) "+10" else "+1"
         
-        // Neobrutal item without complex nested boxes that might clip
+        // Pure Neobrutal Item Style (Black Border container, offset shadow)
         Column(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp, end = 4.dp) // Space for fake shadow
         ) {
-            Row(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .background(ColorProvider(itemColorRes))
-                    .padding(8.dp)
-                    .clickable(actionStartActivity<MainActivity>()),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = GlanceModifier.defaultWeight()) {
-                    Text(
-                        text = show.title.uppercase(),
-                        style = TextStyle(
-                            color = ColorProvider(R.color.widget_text_primary),
-                            fontSize = if (isNarrow) 11.sp else 13.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        maxLines = 1
-                    )
-                    Text(
-                        text = "EP ${show.episode}",
-                        style = TextStyle(
-                            color = ColorProvider(R.color.widget_primary),
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-                
-                Spacer(modifier = GlanceModifier.width(4.dp))
-                
-                // +1 Mini Button
-                Box(
-                    modifier = GlanceModifier
-                        .size(width = 40.dp, height = 32.dp)
-                        .background(ColorProvider(R.color.widget_primary))
-                        .clickable(
-                            actionRunCallback<IncrementActionCallback>(
-                                actionParametersOf(ShowIdKey to show.id)
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "+1",
-                        style = TextStyle(
-                            color = ColorProvider(R.color.widget_surface),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-            }
-            // Simple shadow line
             Box(
                 modifier = GlanceModifier
                     .fillMaxWidth()
-                    .height(3.dp)
+                    .background(ColorProvider(R.color.widget_border))
+                    .padding(2.dp) // Acts as a thick border
+            ) {
+                Row(
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .background(ColorProvider(itemColorRes))
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = GlanceModifier
+                            .defaultWeight()
+                            .clickable(actionStartActivity<MainActivity>())
+                    ) {
+                        Text(
+                            text = show.title.uppercase(),
+                            style = TextStyle(
+                                color = ColorProvider(R.color.widget_text_primary),
+                                fontSize = if (isNarrow) 11.sp else 13.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            maxLines = 1
+                        )
+                        Text(
+                            text = progressText,
+                            style = TextStyle(
+                                color = ColorProvider(R.color.widget_primary),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                    
+                    Spacer(modifier = GlanceModifier.width(8.dp))
+                    
+                    // Increment Button Boxed
+                    Box(
+                        modifier = GlanceModifier
+                            .background(ColorProvider(R.color.widget_border)) // Outline
+                            .padding(2.dp)
+                    ) {
+                        Box(
+                            modifier = GlanceModifier
+                                .size(width = 44.dp, height = 32.dp)
+                                .background(ColorProvider(R.color.widget_surface)) // Filled with contrast color
+                                .clickable(
+                                    actionRunCallback<IncrementActionCallback>(
+                                        actionParametersOf(ShowIdKey to show.id)
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = incrementText,
+                                style = TextStyle(
+                                    color = ColorProvider(R.color.widget_primary),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+            // Accent Shadow Below
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .height(4.dp)
                     .background(ColorProvider(R.color.widget_shadow))
             ) {}
         }
@@ -271,9 +292,16 @@ class IncrementActionCallback : ActionCallback {
         withContext(Dispatchers.IO) {
             val show = db.showDao().getShowById(showId)
             if (show != null) {
+                val incremented = if (show.category == "Cinema") {
+                    val max = show.totalEpisodes?.takeIf { it > 0 } ?: Int.MAX_VALUE
+                    (show.episode + 10).coerceAtMost(max)
+                } else {
+                    show.episode + 1
+                }
+                
                 db.showDao().updateShow(
                     show.copy(
-                        episode = show.episode + 1,
+                        episode = incremented,
                         lastUpdated = System.currentTimeMillis()
                     )
                 )

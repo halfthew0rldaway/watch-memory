@@ -94,20 +94,24 @@ fun BrutalDialog(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp), // Space for button shadows
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         BrutalButton(
                             text = dismissText,
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f),
-                            backgroundColor = Color.White
+                            backgroundColor = Color.White,
+                            contentPadding = PaddingValues(vertical = 12.dp)
                         )
                         BrutalButton(
                             text = confirmText,
                             onClick = onConfirm,
                             modifier = Modifier.weight(1f),
-                            backgroundColor = BrutalYellow
+                            backgroundColor = BrutalYellow,
+                            contentPadding = PaddingValues(vertical = 12.dp)
                         )
                     }
                 }

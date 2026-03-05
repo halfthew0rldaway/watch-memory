@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +41,6 @@ fun HomeScreen(
     onProfileClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val brutal = LocalBrutalColors.current
     var showToDelete by remember { mutableStateOf<com.example.watchmemory.data.ShowEntity?>(null) }
 
     if (showToDelete != null) {
@@ -50,6 +51,14 @@ fun HomeScreen(
                 showToDelete = null
             },
             onDismiss = { showToDelete = null }
+        )
+    }
+
+    if (uiState.isFirstLaunch) {
+        OnboardingDialog(
+            onComplete = { name, title ->
+                viewModel.completeOnboarding(name, title)
+            }
         )
     }
 
@@ -106,7 +115,14 @@ fun HomeScreen(
                             onClick = { onEditShow(show.id) },
                             onIncrement = { viewModel.incrementEpisode(show) },
                             onLongPress = { showToDelete = show },
-                            modifier = Modifier.brutalPopEntry(index + 3)
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    // Subtle tilt based on position (simulation of comic-ish feel)
+                                    // This is a placeholder for a more complex layout-info based tilt
+                                    // because we don't have direct access to item coordinates easily without complications
+                                    // But we can apply a persistent "brutal" feel
+                                }
+                                .brutalPopEntry(index) 
                         )
                     }
                 }
@@ -174,7 +190,7 @@ fun DashboardSection(state: HomeUiState) {
             }
         }
         Box(modifier = Modifier.weight(1f).brutalPopEntry(2).brutalFloat(durationMillis = 2500, delayMillis = 400)) {
-            BrutalContainer(title = "ANIME", backgroundColor = BrutalPurple) {
+            BrutalContainer(title = "SHOWS", backgroundColor = BrutalPurple) {
                 Text(
                     text = state.animeCount.toString(),
                     style = MaterialTheme.typography.displayMedium,

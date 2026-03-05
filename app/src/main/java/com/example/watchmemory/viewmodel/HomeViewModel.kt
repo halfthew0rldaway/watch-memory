@@ -19,6 +19,8 @@ data class HomeUiState(
     val seriesCount: Int = 0,
     val animeCount: Int = 0,
     val userName: String = "ME",
+    val userTitle: String = "WATCHER",
+    val isFirstLaunch: Boolean = false,
     val currentFilter: HomeFilter = HomeFilter.ALL,
     val currentSort: HomeSort = HomeSort.LATEST
 )
@@ -37,13 +39,23 @@ class HomeViewModel(
     private val _filter = MutableStateFlow(HomeFilter.ALL)
     private val _sort = MutableStateFlow(HomeSort.LATEST)
 
+    private val userPrefsFlow = combine(
+        userPreferences.userName,
+        userPreferences.userTitle,
+        userPreferences.isFirstLaunch
+    ) { name, title, isFirst ->
+        Triple(name, title, isFirst)
+    }
+
     val uiState: StateFlow<HomeUiState> = combine(
         repository.getAllShows(),
         _searchQuery,
         _filter,
         _sort,
-        userPreferences.userName
-    ) { shows, query, filter, sort, name ->
+        userPrefsFlow
+    ) { shows, query, filter, sort, userPrefs ->
+        val (name, title, isFirst) = userPrefs
+        
         var filtered = if (query.isBlank()) {
             shows
         } else {
@@ -54,17 +66,14 @@ class HomeViewModel(
         filtered = when (filter) {
             HomeFilter.ALL -> filtered
             HomeFilter.WATCHING -> filtered.filter { show ->
-                val isMovie = show.category == "Movie"
-                val hasTotal = show.totalEpisodes != null && show.totalEpisodes!! > 0
-                if (isMovie) {
-                    if (hasTotal) show.episode < show.totalEpisodes!! else true // If no total, assume ongoing
-                } else {
-                    if (hasTotal) show.episode < show.totalEpisodes!! else true
-                }
+                val total = show.totalEpisodes ?: 0
+                val hasTotal = total > 0
+                if (hasTotal) show.episode < total else true
             }
             HomeFilter.COMPLETED -> filtered.filter { show ->
-                val hasTotal = show.totalEpisodes != null && show.totalEpisodes!! > 0
-                hasTotal && show.episode >= show.totalEpisodes!!
+                val total = show.totalEpisodes ?: 0
+                val hasTotal = total > 0
+                hasTotal && show.episode >= total
             }
         }
 
@@ -79,8 +88,10 @@ class HomeViewModel(
             searchQuery = query,
             totalEpisodesWatched = shows.sumOf { it.episode },
             seriesCount = shows.count { it.category == "Series" },
-            animeCount = shows.count { it.category == "Anime" },
+            animeCount = shows.size,
             userName = name,
+            userTitle = title,
+            isFirstLaunch = isFirst,
             currentFilter = filter,
             currentSort = sort
         )
@@ -97,6 +108,14 @@ class HomeViewModel(
 
     fun updateSort(sort: HomeSort) {
         _sort.value = sort
+    }
+
+    fun completeOnboarding(name: String, title: String) {
+        viewModelScope.launch {
+            if (name.isNotBlank()) userPreferences.saveUserName(name)
+            if (title.isNotBlank()) userPreferences.saveUserTitle(title)
+            userPreferences.completeFirstLaunch()
+        }
     }
 
     fun deleteShow(show: ShowEntity) {

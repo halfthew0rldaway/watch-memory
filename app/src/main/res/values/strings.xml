@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">WatchMemory</string>
+    <string name="app_name">Watch Memory</string>
     <string name="title_hint">Show Title</string>
     <string name="episode_label">Episode</string>
     <string name="note_hint">Note (optional, max 40 chars)</string>
