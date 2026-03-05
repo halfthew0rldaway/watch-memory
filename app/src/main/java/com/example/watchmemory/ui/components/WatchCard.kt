@@ -136,38 +136,40 @@ fun WatchCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column(modifier = Modifier.weight(1f)) {
+                // Title and Category with better alignment
+                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                     Text(
                         text = show.title.uppercase(),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium, // Adjusted size
                         fontWeight = FontWeight.Black,
                         color = brutal.border,
-                        maxLines = 1,
+                        maxLines = 2, // Allow wrapping for balance
                         overflow = TextOverflow.Ellipsis
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = show.category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
-                        color = brutal.border
+                        color = brutal.border.copy(alpha = 0.5f) // Muted for hierarchy
                     )
                 }
 
-                // Delete Button
+                // Delete Button - Styled as a Small Brutal Icon Button
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(8.dp))
                         .background(Color.White)
-                        .border(2.dp, brutal.border, CircleShape)
-                        .clickable { onLongPress() }, // Use long press callback for direct delete as well
+                        .border(1.5.dp, brutal.border, RoundedCornerShape(8.dp))
+                        .clickable { onLongPress() },
                     contentAlignment = Alignment.Center
                 ) {
                     androidx.compose.material3.Icon(
                         imageVector = androidx.compose.material.icons.Icons.Default.Close,
                         contentDescription = "Delete",
                         tint = brutal.border,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
